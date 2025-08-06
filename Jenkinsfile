@@ -1,46 +1,28 @@
 pipeline {
     agent any
 
-    environment {
-        IMAGE_NAME = "yourdockerhubusername/my-node-app"
-    }
-
     stages {
-        stage('Checkout') {
+        stage('Clone Repository') {
             steps {
-                git 'https://github.com/yourusername/your-repo.git'
+                git branch: 'main', url: 'https://github.com/Abhii707/jenkins-node-pipeline.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    docker.build("${IMAGE_NAME}:latest")
-                }
+                sh 'docker build -t my-node-app .'
             }
         }
 
-        stage('Test') {
+        stage('Run Docker Container') {
             steps {
-                echo 'Running tests...'
-                sh 'npm test'
+                sh 'docker run -d -p 3000:3000 --name my-node-container my-node-app'
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Check Running Container') {
             steps {
-                withDockerRegistry([credentialsId: 'docker-hub-credentials', url: '']) {
-                    script {
-                        docker.image("${IMAGE_NAME}:latest").push()
-                    }
-                }
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deployment logic goes here.'
-                // example: ssh command, docker run, etc.
+                sh 'docker ps'
             }
         }
     }
